@@ -32,10 +32,15 @@ public class JwtUtils {
                 .signWith(SignatureAlgorithm.HS512, jwtSecret)
                 .compact();
     }
+    public String generateTokenFromUsername(String username) {
+
+        return null;
+    }
 
     public String getUserNameFromJwtToken(String token) {
         return Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(token).getBody().getSubject();
     }
+
 
     public boolean validateJwtToken(String authToken) {
 
@@ -56,6 +61,7 @@ public class JwtUtils {
 
         return false;
     }
+
 
 
 }

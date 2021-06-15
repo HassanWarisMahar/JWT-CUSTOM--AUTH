@@ -1,13 +1,16 @@
 package com.example.jwt.controllers;
 
+import com.example.jwt.exceptions.TokenRefreshException;
 import com.example.jwt.models.ERole;
 import com.example.jwt.models.RefreshToken;
 import com.example.jwt.models.Role;
 import com.example.jwt.models.User;
 import com.example.jwt.payload.request.LoginRequest;
+import com.example.jwt.payload.request.RefreshTokenRequest;
 import com.example.jwt.payload.request.SignupRequest;
 import com.example.jwt.payload.response.JwtResponse;
 import com.example.jwt.payload.response.MessageResponse;
+import com.example.jwt.payload.response.TokenRefreshResponse;
 import com.example.jwt.repository.RoleRepository;
 import com.example.jwt.repository.UserRepository;
 import com.example.jwt.security.jwt.JwtUtils;
@@ -69,12 +72,12 @@ public class AuthController {
 
         RefreshToken refreshToken = refreshTokeService.createRefreshToken(userDetails.getId());
 
-        return  ResponseEntity.ok(
+        return ResponseEntity.ok(
                 new JwtResponse(
-                        jwt,userDetails.getId(),
+                        jwt, userDetails.getId(),
                         userDetails.getUsername(),
                         userDetails.getEmail(),
-                        roles,refreshToken.toString()));
+                        roles, refreshToken.toString()));
 
 
 //        return ResponseEntity.ok(new JwtResponse(jwt,
@@ -148,9 +151,19 @@ public class AuthController {
         return ResponseEntity.ok(new MessageResponse((roles.toString()) + "User registered successfully!"));
     }
 
-//    @PutMapping("/udateuser")
-//    public ResponseEntity<?> updateUser(@Valid @RequestBody SignupRequest signupRequest){
-//
-//
-//    }
+    @PostMapping("/refreshtoken")
+    public ResponseEntity<?> refreshtoken(@Valid @RequestBody RefreshTokenRequest request) {
+        String requestRefreshToken = request.getRefreshToken();
+
+        return refreshTokeService.findByToken(requestRefreshToken)
+                .map(refreshTokeService::verifyExpiration)
+                .map(RefreshToken::getUser)
+                .map(user -> {
+                    String token = jwtUtils.generateTokenFromUsername(user.getUsername());
+                    return ResponseEntity.ok(new TokenRefreshResponse(token, requestRefreshToken));
+                })
+                .orElseThrow(() -> new TokenRefreshException(requestRefreshToken,
+                        "Refresh token is not in database!"));
+    }
+
 }
