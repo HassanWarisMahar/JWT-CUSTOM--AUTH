@@ -19,11 +19,15 @@ import com.example.jwt.security.services.UserDetailsImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.expression.ExpressionException;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -34,7 +38,7 @@ import java.util.stream.Collectors;
 
 
 @CrossOrigin(origins = "*", maxAge = 3600)
-@RestController
+@Controller
 @RequestMapping("/api/auth")
 public class AuthController {
 
@@ -55,6 +59,92 @@ public class AuthController {
 
     @Autowired
     RefreshTokeService refreshTokeService;
+
+    @GetMapping({"", "/login"})
+    public String viewLoginPage(LoginRequest loginRequest, Model model) {
+        // custom logic before showing login page...
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        loginRequest.getUsername(),
+                        loginRequest.getPassword())
+        );
+        if (authentication == null ) {
+
+            return "login";
+
+        } else {
+
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            String jwt = jwtUtils.generateJwtToken(authentication);
+
+            UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+            List<String> roles = userDetails.getAuthorities().stream()
+                    .map(item -> item.getAuthority())
+                    .collect(Collectors.toList());
+
+            RefreshToken refreshToken = refreshTokeService.createRefreshToken(userDetails.getId());
+
+            JwtResponse jwtResponse =   new JwtResponse(
+
+                    jwt,
+                    userDetails.getId(),
+                    userDetails.getUsername(),
+                    userDetails.getEmail(),
+                    roles,
+                    refreshToken.toString()
+
+            );
+            model.addAttribute("JwtResponse",jwtResponse);
+            return "redirect:/contacts";
+        }
+
+
+
+
+
+    }
+
+//    @GetMapping("/register")
+//    public String showRegistrationForm(Model model) {
+//
+//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//        model.addAttribute("user", new User());
+//        model.addAttribute("success", true);
+//        if (authentication == null || authentication instanceof AnonymousAuthenticationToken) {
+//            model.addAttribute("authorized", false);
+//        } else {
+//            model.addAttribute("authorized", true);
+//        }
+//        return "signup_form";
+//    }
+//
+//    @PostMapping("/process_register")
+//    public String processRegister(User user, Model model) {
+//
+//        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+//        String encodedPassword = passwordEncoder.encode(user.getPassword());
+//        user.setPassword(encodedPassword);
+//        User userFromDb = null;
+//
+//        userFromDb = userRepo.findByEmail(user.getEmail());
+//        String response = null;
+//
+//        if (userFromDb != null) {
+//
+//            logger.info(" User Email changing " + userFromDb.getEmail());
+//            model.addAttribute("user-already-exists", user);
+//            model.addAttribute("isExistsUser", true);
+//            model.addAttribute("emailAlreadyExists", "This Email is already registered ! " + userFromDb.getEmail());
+//            response = "signup_form";
+//
+//        } else {
+//
+//            userRepo.save(user);
+//            //  model.addAttribute("User","");
+//            response = "register_success";
+//        }
+//        return response;
+//    }
 
     @PostMapping("/signin")
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {

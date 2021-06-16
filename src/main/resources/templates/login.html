@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/style.css}"/>
+    <link rel="stylesheet" type="text/css" href="/webjars/bootstrap/css/bootstrap.min.css"/>
+    <script type="text/javascript" src="/webjars/jquery/jquery.min.js"></script>
+    <script type="text/javascript" src="/webjars/bootstrap/js/bootstrap.min.js"></script>
+</head>
+<body>
+<div class="container text-center h-100  center">
+
+    <div class="row h-100 justify-content-center  signup-form align-items-center ">
+
+        <form th:action="@{/login}" method="post" style="max-width: 600px; margin: 8rem;">
+            <h2>Login</h2>
+
+            <div th:if="${param.error}">
+                <p class="text-danger">[[${session.SPRING_SECURITY_LAST_EXCEPTION.message}]]</p>
+            </div>
+
+            <div th:if="${param.logout}">
+                <p class="text-warning">You have been logged out.</p>
+            </div>
+
+            <div>
+
+                <p>
+                    <input type="email" name="email" class="form-control" placeholder="E-mail" required autofocus/>
+                </p>
+                <p>
+                    <input type="password" name="password" class="form-control" placeholder="Password" required/>
+                </p>
+
+                <p>
+                    <input type="submit" value="Login" class="btn btn-primary"/>
+                </p>
+            </div>
+            <div>
+
+                <p> If you are not registered <a th:href="@{/register}">Register Here</a></p>
+
+            </div>
+        </form>
+    </div>
+</div>
+</body>
+</html>
