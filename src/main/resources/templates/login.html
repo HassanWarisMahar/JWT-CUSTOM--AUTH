@@ -14,7 +14,8 @@
 
     <div class="row h-100 justify-content-center  signup-form align-items-center ">
 
-        <form th:action="@{/login}" method="post" style="max-width: 600px; margin: 8rem;">
+        <form th:action="@{/api/auth/signing_process}" method="post" th:object="${user_param}"
+              style="max-width: 600px; margin: 8rem;">
             <h2>Login</h2>
 
             <div th:if="${param.error}">
@@ -28,10 +29,12 @@
             <div>
 
                 <p>
-                    <input type="email" name="email" class="form-control" placeholder="E-mail" required autofocus/>
+                    <input type="text" th:field="*{username}" name="email" class="form-control" placeholder="E-mail"
+                           required autofocus/>
                 </p>
                 <p>
-                    <input type="password" name="password" class="form-control" placeholder="Password" required/>
+                    <input type="password" name="password" th:field="*{password}" class="form-control"
+                           placeholder="Password" required/>
                 </p>
 
                 <p>
@@ -40,7 +43,7 @@
             </div>
             <div>
 
-                <p> If you are not registered <a th:href="@{/register}">Register Here</a></p>
+                <p> If you are not registered <a th:href="@{/signup}">Register Here</a></p>
 
             </div>
         </form>

@@ -23,15 +23,5 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
 		return UserDetailsImpl.build(user);
 	}
-	public UserDetails loadUserByCredentials(String username ,String password){
-
-		User user =	userRepository.existsByCredentials(username,password)
-				.orElseThrow(()-> new UsernameNotFoundException("User Not Found with given Credentials"));
-
-		return  UserDetailsImpl.build(user);
-
-	}
-
-
 
 }
