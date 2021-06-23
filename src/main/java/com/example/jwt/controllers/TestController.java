@@ -1,35 +1,77 @@
 package com.example.jwt.controllers;
 
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.util.WebUtils;
+
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.util.Arrays;
+import java.util.Optional;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
-@RestController
+@Controller
 @RequestMapping("/api/test")
 public class TestController {
-	@GetMapping("/all")
-	public String allAccess() {
-		return "Public Content.";
-	}
-	
-	@GetMapping("/user")
-	@PreAuthorize("hasRole('USER') or hasRole('MODERATOR') or hasRole('ADMIN')")
-	public String userAccess() {
-		return "User Content.";
-	}
+    @GetMapping("/all")
+    public String allAccess(Model model, HttpServletRequest request) {
+        //	return "Public Content.";
+        String authorization = request.getHeader("Authorization");
+        model.addAttribute("user", "All");
+        model.addAttribute("header", authorization);
+        model.addAttribute("cookie", WebUtils.getCookie(request, "token").toString());
 
-	@GetMapping("/mod")
-	@PreAuthorize("hasRole('MODERATOR')")
-	public String moderatorAccess() {
-		return "Moderator Board.";
-	}
+        return "test";
+    }
 
-	@GetMapping("/admin")
-	@PreAuthorize("hasRole('ADMIN')")
-	public String adminAccess() {
-		return "Admin Board.";
-	}
+    @GetMapping("/user")
+    @PreAuthorize("hasRole('USER') or hasRole('MODERATOR') or hasRole('ADMIN')")
+    public String userAccess(Model model, @CookieValue("token") String token, HttpServletRequest request) {
+
+        String authorization = request.getHeader("Authorization");
+        model.addAttribute("user", "User");
+        model.addAttribute("header", authorization);
+        model.addAttribute("cookie", token);
+        //  model.addAttribute("cookie", cookie.getValue()/* readCookie("token", cookie.getValue())*/);
+
+        return "test";
+    }
+
+    @GetMapping("/mod")
+    @PreAuthorize("hasRole('MODERATOR')")
+    public String moderatorAccess(Model model, HttpServletResponse res, HttpServletRequest request) {
+
+        String authorization = request.getHeader("Authorization");
+
+        model.addAttribute("user", "Moderator");
+        model.addAttribute("header", authorization);
+        model.addAttribute("cookie", request.getCookies());
+
+        return "test";
+    }
+
+    @GetMapping("/admin")
+    @PreAuthorize("hasRole('ADMIN')")
+
+    public String adminAccess(Model model, HttpServletRequest request) {
+
+        String authorization = request.getHeader("Authorization");
+
+        model.addAttribute("user", "Admin");
+        model.addAttribute("header", authorization);
+        model.addAttribute("cookie", request.getCookies());
+
+        return "test";
+    }
+
+    public Optional<String> readCookie(String key, Cookie[] cookies) {
+
+        return Arrays.stream(cookies)
+                .filter(c -> key.equals(c.getName()))
+                .map(Cookie::getValue)
+                .findAny();
+    }
 }

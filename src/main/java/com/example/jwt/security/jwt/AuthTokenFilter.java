@@ -12,9 +12,11 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.util.WebUtils;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -33,8 +35,19 @@ public class AuthTokenFilter extends OncePerRequestFilter {
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
 			throws ServletException, IOException {
 		try {
-			String jwt = parseJwt(request);
+			//String jwt = parseJwt(request);
+
+			Cookie cookie = WebUtils.getCookie(request,"token");
+			System.out.println("Outside if ..... ");
+			String jwt = cookie.getValue();
+
+			System.out.println(jwt);
+
+
 			if (jwt != null && jwtUtils.validateJwtToken(jwt)) {
+				System.out.println("Inside if ..... ");
+				System.out.println(jwt);
+				System.out.print(jwtUtils.validateJwtToken(jwt));
 				String username = jwtUtils.getUserNameFromJwtToken(jwt);
 
 				UserDetails userDetails = userDetailsService.loadUserByUsername(username);
@@ -59,5 +72,11 @@ public class AuthTokenFilter extends OncePerRequestFilter {
 		}
 
 		return null;
+	}
+	private Cookie getTokenFromCookie(HttpServletRequest request){
+
+		Cookie cookie = WebUtils.getCookie(request, "token");
+
+		return cookie;
 	}
 }

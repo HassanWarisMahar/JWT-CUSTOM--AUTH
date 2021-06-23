@@ -11,9 +11,9 @@ import com.example.jwt.repository.RoleRepository;
 import com.example.jwt.repository.UserRepository;
 import com.example.jwt.security.jwt.JwtUtils;
 import com.example.jwt.security.services.UserDetailsImpl;
-import org.apache.tomcat.util.http.parser.Authorization;
+import com.example.jwt.utils.HttpCookiesUtil;
+import com.sun.deploy.net.HttpResponse;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpCookie;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -24,18 +24,21 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.util.WebUtils;
+import sun.net.www.http.HttpClient;
 
 import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
+import java.net.URI;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 
-@CrossOrigin(origins = "*", maxAge = 3600)
+//@CrossOrigin(origins = "*", maxAge = 3600)
 @Controller
 @RequestMapping("/api/auth")
 public class AuthController {
@@ -59,12 +62,11 @@ public class AuthController {
     public String auth(Model model) {
 
         model.addAttribute("user_param", new LoginRequest());
-
         return "login";
     }
 
     @PostMapping("/signing_process")
-    public String authenticateUser(LoginRequest loginRequest, HttpServletResponse res, Model model) {
+    public String authenticateUser(LoginRequest loginRequest, HttpServletResponse res, HttpServletRequest request, Model model) {
 
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
@@ -77,25 +79,24 @@ public class AuthController {
                 .map(item -> item.getAuthority())
                 .collect(Collectors.toList());
 
-        Cookie cookie = new Cookie("token", jwt);
-        cookie.setMaxAge(7 * 24 * 60 * 60); // expires in 7 days
-        cookie.setPath("/");
-        cookie.setSecure(true);
-        cookie.setHttpOnly(true);
-        res.setHeader("Access-Control-Allow-Credentials", "true");
-        res.addCookie(cookie);
-        model.addAttribute("jwt",jwt);
+        /******************Working with Cookies to handle the jwt ******************/
+        // Create authorization header
+        HttpCookiesUtil httpCookiesUtil = new HttpCookiesUtil();
+        httpCookiesUtil.setCookies(res, jwt);
 
-//        ResponseEntity
-//                .ok()
-//                .header(HttpHeaders.AUTHORIZATION, springCookie.toString())
-//                .build();
-
-//        return ResponseEntity.ok(new JwtResponse(jwt,
-//                userDetails.getId(),
-//                userDetails.getUsername(),
-//                userDetails.getEmail(),
-//                roles));
+        //sending jwt response against the request to thyme template
+        model.addAttribute("jwt_response",
+                new JwtResponse(
+                        jwt,
+                        userDetails.getId(),
+                        userDetails.getUsername(),
+                        userDetails.getEmail(),
+                        roles
+                )
+        );
+        model.addAttribute("header", request.getHeader("Authorization"));
+        model.addAttribute("Auth", request.getAuthType());
+        model.addAttribute("Cookie",WebUtils.getCookie(request ,"token"));
 
         return "register_success";
     }
