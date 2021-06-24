@@ -16,13 +16,13 @@ import java.util.Optional;
 @Controller
 @RequestMapping("/api/test")
 public class TestController {
+
     @GetMapping("/all")
-    public String allAccess(Model model, HttpServletRequest request) {
+    public String allAccess(@CookieValue("token")String token, Model model, HttpServletRequest request) {
         //	return "Public Content.";
-        String authorization = request.getHeader("Authorization");
-        model.addAttribute("user", "All");
-        model.addAttribute("header", authorization);
-        model.addAttribute("cookie", WebUtils.getCookie(request, "token").toString());
+        request.getRemoteUser();
+        model.addAttribute("user", "All"+request.getRemoteUser());
+        model.addAttribute("cookie", token+"\n"+request.getRemoteHost());
 
         return "test";
     }

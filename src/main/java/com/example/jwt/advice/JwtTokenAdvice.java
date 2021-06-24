@@ -2,6 +2,7 @@ package com.example.jwt.advice;
 
 import com.example.jwt.exceptions.TokenRefreshException;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -9,7 +10,7 @@ import org.springframework.web.context.request.WebRequest;
 
 import java.util.Date;
 
-@RestControllerAdvice
+@ControllerAdvice
 public class JwtTokenAdvice extends Throwable{
 
     @ExceptionHandler(value = TokenRefreshException.class)

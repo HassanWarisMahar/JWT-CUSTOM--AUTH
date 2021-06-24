@@ -25,13 +25,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.WebUtils;
-import sun.net.www.http.HttpClient;
 
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
-import java.net.URI;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -80,7 +77,7 @@ public class AuthController {
                 .collect(Collectors.toList());
 
         /******************Working with Cookies to handle the jwt ******************/
-        // Create authorization header
+
         HttpCookiesUtil httpCookiesUtil = new HttpCookiesUtil();
         httpCookiesUtil.setCookies(res, jwt);
 
@@ -96,23 +93,28 @@ public class AuthController {
         );
         model.addAttribute("header", request.getHeader("Authorization"));
         model.addAttribute("Auth", request.getAuthType());
-        model.addAttribute("Cookie",WebUtils.getCookie(request ,"token"));
+        model.addAttribute("Cookie", WebUtils.getCookie(request, "token"));
 
         return "register_success";
     }
 
     @PostMapping("/signup")
-    public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest) {
+    public String registerUser( SignupRequest signUpRequest, Model model) {
         if (userRepository.existsByUsername(signUpRequest.getUsername())) {
-            return ResponseEntity
-                    .badRequest()
-                    .body(new MessageResponse("Error: Username is already taken!"));
+            model.addAttribute("error", new MessageResponse("Username is already is use "));
+
+//            return ResponseEntity
+//                    .badRequest()
+//                    .body(new MessageResponse("Error: Username is already taken!"));
         }
 
         if (userRepository.existsByEmail(signUpRequest.getEmail())) {
-            return ResponseEntity
-                    .badRequest()
-                    .body(new MessageResponse("Error: Email is already in use!"));
+
+            model.addAttribute("error","Email is already in use ! ");
+//            return ResponseEntity
+//                    .badRequest()
+//                    .body(new MessageResponse("Error: Email is already in use!"));
+
         }
 
         // Create new user's account
@@ -153,7 +155,8 @@ public class AuthController {
         user.setRoles(roles);
         userRepository.save(user);
 
-        return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
+        return  "signup_form";
+       //return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
     }
 
 }

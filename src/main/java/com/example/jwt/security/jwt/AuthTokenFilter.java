@@ -11,6 +11,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.util.WebUtils;
 
@@ -23,60 +24,60 @@ import java.io.IOException;
 
 public class AuthTokenFilter extends OncePerRequestFilter {
 
-	@Autowired
-	private JwtUtils jwtUtils;
+    @Autowired
+    private JwtUtils jwtUtils;
 
-	@Autowired
-	private UserDetailsServiceImpl userDetailsService;
+    @Autowired
+    private UserDetailsServiceImpl userDetailsService;
 
-	private static final Logger logger = LoggerFactory.getLogger(AuthTokenFilter.class);
+    private static final Logger logger = LoggerFactory.getLogger(AuthTokenFilter.class);
 
-	@Override
-	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-			throws ServletException, IOException {
-		try {
-			//String jwt = parseJwt(request);
-
-			Cookie cookie = WebUtils.getCookie(request,"token");
-			System.out.println("Outside if ..... ");
-			String jwt = cookie.getValue();
-
-			System.out.println(jwt);
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
+        try {
+            //String jwt = parseJwt(request);
 
 
-			if (jwt != null && jwtUtils.validateJwtToken(jwt)) {
-				System.out.println("Inside if ..... ");
-				System.out.println(jwt);
-				System.out.print(jwtUtils.validateJwtToken(jwt));
-				String username = jwtUtils.getUserNameFromJwtToken(jwt);
+            System.out.println("Outside if ..... ");
+            String jwt = getTokenFromCookie(request);
+            System.out.println(jwt);
 
-				UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-				UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-						userDetails, null, userDetails.getAuthorities());
-				authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+            if (jwt != null && jwtUtils.validateJwtToken(jwt)) {
 
-				SecurityContextHolder.getContext().setAuthentication(authentication);
-			}
-		} catch (Exception e) {
-			logger.error("Cannot set user authentication: {}", e);
-		}
+                System.out.println("Inside if ..... ");
+                System.out.println(jwt);
+                System.out.print(jwtUtils.validateJwtToken(jwt));
+                String username = jwtUtils.getUserNameFromJwtToken(jwt);
 
-		filterChain.doFilter(request, response);
-	}
+                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                        userDetails, null, userDetails.getAuthorities());
+                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-	private String parseJwt(HttpServletRequest request) {
-		String headerAuth = request.getHeader("Authorization");
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            }
+        } catch (Exception e) {
+            logger.error("Cannot set user authentication: {}", e);
+        }
 
-		if (StringUtils.hasText(headerAuth) && headerAuth.startsWith("Bearer ")) {
-			return headerAuth.substring(7, headerAuth.length());
-		}
+        filterChain.doFilter(request, response);
+    }
 
-		return null;
-	}
-	private Cookie getTokenFromCookie(HttpServletRequest request){
+    private String parseJwt(HttpServletRequest request) {
+        String headerAuth = request.getHeader("Authorization");
 
-		Cookie cookie = WebUtils.getCookie(request, "token");
+        if (StringUtils.hasText(headerAuth) && headerAuth.startsWith("Bearer ")) {
+            return headerAuth.substring(7, headerAuth.length());
+        }
 
-		return cookie;
-	}
+        return null;
+    }
+
+    private String getTokenFromCookie(HttpServletRequest request) {
+
+        Cookie cookie = WebUtils.getCookie(request, "token");
+
+        return cookie.getValue();
+    }
 }
