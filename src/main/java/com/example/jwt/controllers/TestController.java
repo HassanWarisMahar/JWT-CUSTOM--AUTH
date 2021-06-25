@@ -4,7 +4,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.util.WebUtils;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -12,17 +11,16 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.Arrays;
 import java.util.Optional;
 
-@CrossOrigin(origins = "*", maxAge = 3600)
 @Controller
-@RequestMapping("/api/test")
+@RequestMapping("/test")
 public class TestController {
 
     @GetMapping("/all")
-    public String allAccess(@CookieValue("token")String token, Model model, HttpServletRequest request) {
-        //	return "Public Content.";
-        request.getRemoteUser();
-        model.addAttribute("user", "All"+request.getRemoteUser());
-        model.addAttribute("cookie", token+"\n"+request.getRemoteHost());
+    public String allAccess(@CookieValue("token") String token, Model model, HttpServletRequest request) {
+
+        model.addAttribute("test", false);
+        model.addAttribute("user", "All" + request.getRemoteUser());
+        model.addAttribute("cookie", token + "\n Host " + request.getRemoteHost());
 
         return "test";
     }
@@ -31,24 +29,22 @@ public class TestController {
     @PreAuthorize("hasRole('USER') or hasRole('MODERATOR') or hasRole('ADMIN')")
     public String userAccess(Model model, @CookieValue("token") String token, HttpServletRequest request) {
 
-        String authorization = request.getHeader("Authorization");
+        model.addAttribute("test", false);
         model.addAttribute("user", "User");
-        model.addAttribute("header", authorization);
         model.addAttribute("cookie", token);
-        //  model.addAttribute("cookie", cookie.getValue()/* readCookie("token", cookie.getValue())*/);
+        model.addAttribute("cookie", token + "\n Host " + request.getRemoteHost());
 
         return "test";
     }
 
     @GetMapping("/mod")
     @PreAuthorize("hasRole('MODERATOR')")
-    public String moderatorAccess(Model model, HttpServletResponse res, HttpServletRequest request) {
+    public String moderatorAccess(@CookieValue("token") String token, Model model, HttpServletResponse res, HttpServletRequest request) {
 
-        String authorization = request.getHeader("Authorization");
-
+        model.addAttribute("test", false);
         model.addAttribute("user", "Moderator");
-        model.addAttribute("header", authorization);
-        model.addAttribute("cookie", request.getCookies());
+        model.addAttribute("cookie", token);
+        model.addAttribute("cookie", token + "\n Host " + request.getRemoteHost());
 
         return "test";
     }
@@ -56,13 +52,12 @@ public class TestController {
     @GetMapping("/admin")
     @PreAuthorize("hasRole('ADMIN')")
 
-    public String adminAccess(Model model, HttpServletRequest request) {
+    public String adminAccess(@CookieValue("token") String token, Model model, HttpServletRequest request) {
 
-        String authorization = request.getHeader("Authorization");
-
+        model.addAttribute("test", false);
         model.addAttribute("user", "Admin");
-        model.addAttribute("header", authorization);
-        model.addAttribute("cookie", request.getCookies());
+        model.addAttribute("cookie", token);
+        model.addAttribute("cookie", token + "\n Host " + request.getRemoteHost());
 
         return "test";
     }

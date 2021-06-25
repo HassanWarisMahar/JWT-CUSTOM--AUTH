@@ -1,5 +1,4 @@
-package com.example.jwt.security.jwt;
-
+package com.example.jwt.utils;
 
 import com.example.jwt.security.services.UserDetailsImpl;
 import io.jsonwebtoken.*;
@@ -13,6 +12,7 @@ import java.util.Date;
 
 @Component
 public class JwtUtils {
+
     private static final Logger logger = LoggerFactory.getLogger(JwtUtils.class);
 
     @Value("${jwtSecret}")

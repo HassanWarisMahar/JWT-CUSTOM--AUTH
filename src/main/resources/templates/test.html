@@ -19,18 +19,30 @@
 
 <div class="container text-center">
 
-    <h3>Good Job [[${user}]]</h3>
-    User
-    <h4 th:text="${user}"></h4><br>
-    Header
-    <h4 th:text="${header}"></h4><br>
-    Cookie
-    <h4 th:text="${cookie}"></h4>
-    <p class="text-danger"></p>
-    <h4><a th:href="@{/api/auth/signing}">Click here to Login</a></h4>
-    <h4><a th:href="@{/api/test/all}">Link for any user can access</a></h4>
-    <h4><a th:href="@{/api/test/mod}">Link for only moderator</a></h4>
-    <h4><a th:href="@{/api/test/admin}">Link for only admin</a></h4>
+    <div th:if="${test}">
+        <h2>[[${user}]]</h2>
+
+        JWT
+        <ul>
+            <li th:text="${jwt_response.token}" th></li>
+            <li th:text="${jwt_response.roles}"></li>
+            <li th:text="${jwt_response.username}" th></li>
+            <li th:text="${jwt_response.email}" th></li>
+        </ul>
+
+        <br>
+
+    </div>
+    <div>
+        Cookie
+        <h6 th:text="${cookie}"></h6>
+
+        <p class="text-danger"></p>
+        <h4><a th:href="@{/auth/logout}">Click here to Logout</a></h4>
+        <h4><a th:href="@{/test/all}">Link for any user can access</a></h4>
+        <h4><a th:href="@{/test/mod}">Link for only moderator</a></h4>
+        <h4><a th:href="@{/test/admin}">Link for only admin</a></h4>
+    </div>
 
 
 </div>

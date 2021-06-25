@@ -9,13 +9,10 @@ import com.example.jwt.payload.response.JwtResponse;
 import com.example.jwt.payload.response.MessageResponse;
 import com.example.jwt.repository.RoleRepository;
 import com.example.jwt.repository.UserRepository;
-import com.example.jwt.security.jwt.JwtUtils;
+import com.example.jwt.utils.JwtUtils;
 import com.example.jwt.security.services.UserDetailsImpl;
-import com.example.jwt.utils.HttpCookiesUtil;
-import com.sun.deploy.net.HttpResponse;
+import com.example.jwt.utils.HttpUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -24,20 +21,18 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.util.WebUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.validation.Valid;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-
-//@CrossOrigin(origins = "*", maxAge = 3600)
 @Controller
-@RequestMapping("/api/auth")
+@RequestMapping("/auth")
 public class AuthController {
 
     @Autowired
@@ -55,6 +50,9 @@ public class AuthController {
     @Autowired
     JwtUtils jwtUtils;
 
+    @Autowired
+    HttpUtils httpUtils;
+
     @GetMapping("/signing")
     public String auth(Model model) {
 
@@ -63,7 +61,7 @@ public class AuthController {
     }
 
     @PostMapping("/signing_process")
-    public String authenticateUser(LoginRequest loginRequest, HttpServletResponse res, HttpServletRequest request, Model model) {
+    public String authenticateUser( LoginRequest loginRequest , HttpServletResponse res, Model model) {
 
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
@@ -76,12 +74,12 @@ public class AuthController {
                 .map(item -> item.getAuthority())
                 .collect(Collectors.toList());
 
-        /******************Working with Cookies to handle the jwt ******************/
+        /****************** Working with Cookies to handle the Jwt ******************/
 
-        HttpCookiesUtil httpCookiesUtil = new HttpCookiesUtil();
-        httpCookiesUtil.setCookies(res, jwt);
+        httpUtils.setCookies(res, jwt);
 
         //sending jwt response against the request to thyme template
+        model.addAttribute("test",true);
         model.addAttribute("jwt_response",
                 new JwtResponse(
                         jwt,
@@ -91,30 +89,19 @@ public class AuthController {
                         roles
                 )
         );
-        model.addAttribute("header", request.getHeader("Authorization"));
-        model.addAttribute("Auth", request.getAuthType());
-        model.addAttribute("Cookie", WebUtils.getCookie(request, "token"));
 
-        return "register_success";
+        return "test";
     }
 
     @PostMapping("/signup")
-    public String registerUser( SignupRequest signUpRequest, Model model) {
+    public String registerUser(SignupRequest signUpRequest, Model model) {
+
         if (userRepository.existsByUsername(signUpRequest.getUsername())) {
             model.addAttribute("error", new MessageResponse("Username is already is use "));
-
-//            return ResponseEntity
-//                    .badRequest()
-//                    .body(new MessageResponse("Error: Username is already taken!"));
         }
 
         if (userRepository.existsByEmail(signUpRequest.getEmail())) {
-
-            model.addAttribute("error","Email is already in use ! ");
-//            return ResponseEntity
-//                    .badRequest()
-//                    .body(new MessageResponse("Error: Email is already in use!"));
-
+            model.addAttribute("error", "Email is already in use ! ");
         }
 
         // Create new user's account
@@ -122,7 +109,7 @@ public class AuthController {
                 signUpRequest.getEmail(),
                 encoder.encode(signUpRequest.getPassword()));
 
-        Set<String> strRoles = signUpRequest.getRole();
+        Set<String> strRoles = signUpRequest.getRoles();
         Set<Role> roles = new HashSet<>();
 
         if (strRoles == null) {
@@ -155,8 +142,17 @@ public class AuthController {
         user.setRoles(roles);
         userRepository.save(user);
 
-        return  "signup_form";
-       //return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
+        return "signup_form";
+
+    }
+
+    @GetMapping("/logout")
+    public String logout(Model model, HttpServletResponse response) {
+
+        httpUtils.removeCookie(response);
+        model.addAttribute("user_param", new LoginRequest());
+        return "redirect:/auth/signing";
+
     }
 
 }

@@ -1,8 +1,9 @@
 package com.example.jwt.security.jwt;
 
 
-import com.example.jwt.security.services.UserDetailsImpl;
 import com.example.jwt.security.services.UserDetailsServiceImpl;
+import com.example.jwt.utils.HttpUtils;
+import com.example.jwt.utils.JwtUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,13 +12,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.filter.OncePerRequestFilter;
-import org.springframework.web.util.WebUtils;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -26,6 +24,9 @@ public class AuthTokenFilter extends OncePerRequestFilter {
 
     @Autowired
     private JwtUtils jwtUtils;
+
+    @Autowired
+    HttpUtils httpUtils;
 
     @Autowired
     private UserDetailsServiceImpl userDetailsService;
@@ -38,9 +39,8 @@ public class AuthTokenFilter extends OncePerRequestFilter {
         try {
             //String jwt = parseJwt(request);
 
-
             System.out.println("Outside if ..... ");
-            String jwt = getTokenFromCookie(request);
+            String jwt = httpUtils.getTokenFromCookie(request);
             System.out.println(jwt);
 
             if (jwt != null && jwtUtils.validateJwtToken(jwt)) {
@@ -65,8 +65,8 @@ public class AuthTokenFilter extends OncePerRequestFilter {
     }
 
     private String parseJwt(HttpServletRequest request) {
-        String headerAuth = request.getHeader("Authorization");
 
+        String headerAuth = request.getHeader("Authorization");
         if (StringUtils.hasText(headerAuth) && headerAuth.startsWith("Bearer ")) {
             return headerAuth.substring(7, headerAuth.length());
         }
@@ -74,10 +74,5 @@ public class AuthTokenFilter extends OncePerRequestFilter {
         return null;
     }
 
-    private String getTokenFromCookie(HttpServletRequest request) {
 
-        Cookie cookie = WebUtils.getCookie(request, "token");
-
-        return cookie.getValue();
-    }
 }

@@ -17,25 +17,20 @@
 
 <div class="container text-center">
 
-    <h3>You have signed up successfully!</h3>
-    JWT
-    <ul>
-        <li th:text="${jwt_response.token}" th></li>
-        <li th:text="${jwt_response.roles}"></li>
-        <li th:text="${jwt_response.username}" th></li>
-        <li th:text="${jwt_response.email}" th></li>
-    </ul>
-    <br>
-    Header
-    <h4 th:text="${header}"></h4>
-    <br>
-    Auth
-    <h4 th:text="${Auth}"></h4>
-    Cookie
-    <h4 th:text="${Cookie}"></h4>
+<!--    <h3>You have signed up successfully!</h3>-->
+<!--    JWT-->
+<!--    <ul>-->
+<!--        <li th:text="${jwt_response.token}" th></li>-->
+<!--        <li th:text="${jwt_response.roles}"></li>-->
+<!--        <li th:text="${jwt_response.username}" th></li>-->
+<!--        <li th:text="${jwt_response.email}" th></li>-->
+<!--    </ul>-->
+<!--    <br>-->
+<!--    Cookie-->
+<!--    <h4 th:text="${Cookie}"></h4>-->
 
     <p class="text-danger"></p>
-    <h4><a th:href="@{/api/test/all}">Click here to Test Authentication</a></h4>
+    <h4><a th:href="@{/test/all}">Click here to Test Authentication</a></h4>
 
 </div>
 </body>
