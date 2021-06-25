@@ -19,7 +19,7 @@ public class TestController {
     public String allAccess(@CookieValue("token") String token, Model model, HttpServletRequest request) {
 
         model.addAttribute("test", false);
-        model.addAttribute("user", "All" + request.getRemoteUser());
+        model.addAttribute("user",   request.getRemoteUser()+" you and everyone else can access public Content ");
         model.addAttribute("cookie", token + "\n Host " + request.getRemoteHost());
 
         return "test";
@@ -30,7 +30,7 @@ public class TestController {
     public String userAccess(Model model, @CookieValue("token") String token, HttpServletRequest request) {
 
         model.addAttribute("test", false);
-        model.addAttribute("user", "User");
+        model.addAttribute("user", request.getRemoteUser()+" as User you can also access to this content ");
         model.addAttribute("cookie", token);
         model.addAttribute("cookie", token + "\n Host " + request.getRemoteHost());
 
@@ -42,7 +42,7 @@ public class TestController {
     public String moderatorAccess(@CookieValue("token") String token, Model model, HttpServletResponse res, HttpServletRequest request) {
 
         model.addAttribute("test", false);
-        model.addAttribute("user", "Moderator");
+        model.addAttribute("user", request.getRemoteUser()+" as a moderator you can access this content ");
         model.addAttribute("cookie", token);
         model.addAttribute("cookie", token + "\n Host " + request.getRemoteHost());
 
@@ -55,7 +55,7 @@ public class TestController {
     public String adminAccess(@CookieValue("token") String token, Model model, HttpServletRequest request) {
 
         model.addAttribute("test", false);
-        model.addAttribute("user", "Admin");
+        model.addAttribute("user", request.getRemoteUser()+" as a Admin you can access this content ");
         model.addAttribute("cookie", token);
         model.addAttribute("cookie", token + "\n Host " + request.getRemoteHost());
 
